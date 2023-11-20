@@ -2,6 +2,8 @@ from pprint import pprint
 
 import numpy as np
 
+MAX_INT = np.iinfo(np.intc).max
+
 
 class TransportationProblem:
     n: int
@@ -63,8 +65,79 @@ class TransportationProblem:
 
         return costs
 
+    def find_diff(self, costs: np.ndarray[np.ndarray[int]]):
+
+        row_diff = np.array([])
+        col_diff = np.array([])
+
+        for i in range(self.n):
+            arr = costs[i][:]
+            arr = np.sort(arr)
+            row_diff = np.append(row_diff, arr[1] - arr[0])
+        col = 0
+
+        while col < self.m:
+            arr = np.array([])
+            for i in range(self.n):
+                arr = np.append(arr, costs[i][col])
+            arr = np.sort(arr)
+            col += 1
+            col_diff = np.append(col_diff, arr[1] - arr[0])
+        return row_diff, col_diff
+
     def solve_with_vogel_approximation(self) -> np.ndarray[np.ndarray[int]]:
-        pass
+        ans = np.zeros_like(self.costs)
+        costs = self.costs.copy()
+        supply = self.supply.copy()
+        demand = self.demand.copy()
+
+        while np.max(supply) != 0 or np.max(demand) != 0:
+            row, col = self.find_diff(costs)
+            row_max = np.max(row)
+            row_col = np.max(col)
+
+            if row_max >= row_col:
+                for row_index, row_value in enumerate(row):
+                    if row_value == row_max:
+                        row_min = np.min(costs[row_index])
+
+                        for col_index, col_value in enumerate(costs[row_index]):
+                            if col_value == row_min:
+                                min_value = min(supply[row_index], demand[col_index])
+
+                                ans[row_index][col_index] = min_value
+
+                                supply[row_index] -= min_value
+                                demand[col_index] -= min_value
+                                if demand[col_index] == 0:
+                                    for r in range(self.n):
+                                        costs[r][col_index] = MAX_INT
+                                else:
+                                    costs[row_index] = [MAX_INT for _ in range(self.m)]
+                                break
+                        break
+            else:
+                for row_index, row_value in enumerate(col):
+                    if row_value == row_col:
+                        row_min = MAX_INT
+                        for j in range(self.n):
+                            row_min = min(row_min, costs[j][row_index])
+
+                        for col_index in range(self.n):
+                            col_value = costs[col_index][row_index]
+                            if col_value == row_min:
+                                min_value = min(supply[col_index], demand[row_index])
+                                ans[col_index][row_index] = min_value
+                                supply[col_index] -= min_value
+                                demand[row_index] -= min_value
+                                if demand[row_index] == 0:
+                                    for r in range(self.n):
+                                        costs[r][row_index] = MAX_INT
+                                else:
+                                    costs[col_index] = [MAX_INT for _ in range(self.m)]
+                                break
+                        break
+        return ans
 
     @staticmethod
     def update_max_values(
@@ -89,8 +162,7 @@ class TransportationProblem:
             supply: np.ndarray[int],
             demand: np.ndarray[int],
     ) -> tuple[int, int]:
-
-        max_value = -np.inf
+        max_value = -MAX_INT
         max_pos = -1, -1
         for i in range(len(u)):
             for j in range(len(v)):
@@ -116,8 +188,8 @@ class TransportationProblem:
     def solve_with_russel_approximation(self):
         ans = np.zeros_like(self.costs)
 
-        u = np.full(self.n, -np.inf)
-        v = np.full(self.m, -np.inf)
+        u = np.full(self.n, -MAX_INT)
+        v = np.full(self.m, -MAX_INT)
 
         supply = self.supply.copy()
         demand = self.demand.copy()
