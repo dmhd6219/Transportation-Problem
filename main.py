@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from pprint import pprint
 
 import numpy as np
@@ -6,6 +9,17 @@ MAX_INT = np.iinfo(np.intc).max
 
 
 class TransportationProblem:
+    """
+        Represents a Transportation Problem solver using various approximation methods.
+
+        Attributes:
+        - n (int): Number of suppliers.
+        - m (int): Number of consumers.
+        - supply (np.ndarray[int]): Array representing the supply from each supplier.
+        - demand (np.ndarray[int]): Array representing the demand from each consumer.
+        - costs (np.ndarray[np.ndarray[int]]): 2D array representing the transportation costs.
+    """
+
     n: int
     m: int
     supply: np.ndarray[int]
@@ -13,10 +27,16 @@ class TransportationProblem:
     costs: np.ndarray[np.ndarray[int]]
 
     def __init__(self):
+        """
+            Initializes a TransportationProblem instance by parsing input and checking validity.
+        """
         self.parse_input()
         self.check_input()
 
     def parse_input(self) -> None:
+        """
+            Parses input from a file and initializes problem parameters.
+        """
         with open("./test.txt") as test:
             self.supply = self.string2array(test.readline().strip("\n"))
             self.demand = self.string2array(test.readline().strip("\n"))
@@ -31,10 +51,22 @@ class TransportationProblem:
                 self.costs[i] = self.string2array(input_string)
 
     def check_input(self) -> None:
+        """
+            Checks the validity of the parsed input.
+        """
         pass
 
     @staticmethod
     def string2array(string: str) -> np.ndarray[int]:
+        """
+            Converts a space-separated string to a NumPy integer array.
+
+            Args:
+            - string (str): Space-separated string.
+
+            Returns:
+            - np.ndarray[int]: Integer array.
+        """
         return np.array([int(x) for x in string.split()])
 
     @staticmethod
@@ -45,11 +77,28 @@ class TransportationProblem:
             supply: np.ndarray[int],
             demand: np.ndarray[int],
     ) -> None:
+        """
+            Allocates transportation at minimum cost in the given row and column.
+
+            Args:
+            - start_row (int): Starting row index.
+            - start_column (int): Starting column index.
+            - costs (np.ndarray[np.ndarray[int]]): Transportation costs matrix.
+            - supply (np.ndarray[int]): Array representing the supply from each supplier.
+            - demand (np.ndarray[int]): Array representing the demand from each consumer.
+        """
+
         costs[start_row, start_column] = min(supply[start_row], demand[start_column])
         supply[start_row] -= costs[start_row, start_column]
         demand[start_column] -= costs[start_row, start_column]
 
     def solve_with_north_west_corner(self) -> np.ndarray[np.ndarray[int]]:
+        """
+            Solves the Transportation Problem using the North-West Corner method and returns the solution.
+
+            Returns:
+            - np.ndarray[np.ndarray[int]]: Solution matrix.
+        """
         start_row = 0
         start_column = 0
 
@@ -66,6 +115,15 @@ class TransportationProblem:
         return costs
 
     def find_diff(self, costs: np.ndarray[np.ndarray[int]]):
+        """
+            Finds the difference between the two smallest and the two smallest values in each row and column.
+
+            Args:
+            - costs (np.ndarray[np.ndarray[int]]): Transportation costs matrix.
+
+            Returns:
+            - Tuple[np.ndarray[int], np.ndarray[int]]: Tuple containing row differences and column differences.
+        """
 
         row_diff = np.array([])
         col_diff = np.array([])
@@ -86,6 +144,12 @@ class TransportationProblem:
         return row_diff, col_diff
 
     def solve_with_vogel_approximation(self) -> np.ndarray[np.ndarray[int]]:
+        """
+            Solves the Transportation Problem using Vogel's Approximation method and returns the solution.
+
+            Returns:
+            - np.ndarray[np.ndarray[int]]: Solution matrix.
+        """
         ans = np.zeros_like(self.costs)
         costs = self.costs.copy()
         supply = self.supply.copy()
@@ -149,6 +213,19 @@ class TransportationProblem:
             supply: np.ndarray[int],
             demand: np.ndarray[int],
     ) -> None:
+        """
+            Updates the maximum values for each row and column in the given arrays.
+
+            Args:
+            - n (int): Number of suppliers.
+            - m (int): Number of consumers.
+            - u (np.ndarray[int]): Array representing the dual variable for each supplier.
+            - v (np.ndarray[int]): Array representing the dual variable for each consumer.
+            - costs (np.ndarray[np.ndarray[int]]): Transportation costs matrix.
+            - supply (np.ndarray[int]): Array representing the supply from each supplier.
+            - demand (np.ndarray[int]): Array representing the demand from each consumer.
+        """
+
         for i in range(n):
             u[i] = max(costs[i, :]) if supply[i] > 0 else u[i]
         for j in range(m):
@@ -162,6 +239,19 @@ class TransportationProblem:
             supply: np.ndarray[int],
             demand: np.ndarray[int],
     ) -> tuple[int, int]:
+        """
+            Finds the position with the maximum Russell value in the given arrays.
+
+            Args:
+            - u (np.ndarray[int]): Array representing the dual variable for each supplier.
+            - v (np.ndarray[int]): Array representing the dual variable for each consumer.
+            - costs (np.ndarray[np.ndarray[int]]): Transportation costs matrix.
+            - supply (np.ndarray[int]): Array representing the supply from each supplier.
+            - demand (np.ndarray[int]): Array representing the demand from each consumer.
+
+            Returns:
+            - Tuple[int, int]: Tuple containing the row and column indices of the maximum position.
+        """
         max_value = -MAX_INT
         max_pos = -1, -1
         for i in range(len(u)):
@@ -180,12 +270,27 @@ class TransportationProblem:
             supply: np.ndarray[int],
             demand: np.ndarray[int],
     ) -> None:
+        """
+            Allocates transportation at the position with the maximum Russell value.
+
+            Args:
+            - ans (np.ndarray[np.ndarray[int]]): Solution matrix.
+            - max_pos (Tuple[int, int]): Tuple containing the row and column indices of the maximum position.
+            - supply (np.ndarray[int]): Array representing the supply from each supplier.
+            - demand (np.ndarray[int]): Array representing the demand from each consumer.
+        """
         allocation = min(supply[max_pos[0]], demand[max_pos[1]])
         ans[max_pos[0], max_pos[1]] = allocation
         supply[max_pos[0]] -= allocation
         demand[max_pos[1]] -= allocation
 
     def solve_with_russel_approximation(self):
+        """
+            Solves the Transportation Problem using Russell's Approximation method and returns the solution.
+
+            Returns:
+            - np.ndarray[np.ndarray[int]]: Solution matrix.
+        """
         ans = np.zeros_like(self.costs)
 
         u = np.full(self.n, -MAX_INT)
@@ -204,6 +309,9 @@ class TransportationProblem:
 
 
 def main() -> None:
+    """
+        Entry point of the script; initializes the solver and prints results.
+    """
     solver = TransportationProblem()
 
     print("North-West Corner method returned :")
