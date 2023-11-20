@@ -61,7 +61,11 @@ class TransportationProblem:
 
             for i in range(self.n):
                 input_string = test.readline().strip("\n")
-                self.costs[i] = self.__string2array(input_string)
+                try :
+                    self.costs[i] = self.__string2array(input_string)
+                except ValueError:
+                    print("The method is not applicable!")
+                    exit(1)
 
     def __check_input(self) -> None:
         """
