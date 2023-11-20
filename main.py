@@ -30,16 +30,16 @@ class TransportationProblem:
         """
             Initializes a TransportationProblem instance by parsing input and checking validity.
         """
-        self.parse_input()
-        self.check_input()
+        self.__parse_input()
+        self.__check_input()
 
-    def parse_input(self) -> None:
+    def __parse_input(self) -> None:
         """
             Parses input from a file and initializes problem parameters.
         """
         with open("./test.txt") as test:
-            self.supply = self.string2array(test.readline().strip("\n"))
-            self.demand = self.string2array(test.readline().strip("\n"))
+            self.supply = self.__string2array(test.readline().strip("\n"))
+            self.demand = self.__string2array(test.readline().strip("\n"))
 
             self.n = len(self.supply)
             self.m = len(self.demand)
@@ -48,16 +48,16 @@ class TransportationProblem:
 
             for i in range(self.n):
                 input_string = test.readline().strip("\n")
-                self.costs[i] = self.string2array(input_string)
+                self.costs[i] = self.__string2array(input_string)
 
-    def check_input(self) -> None:
+    def __check_input(self) -> None:
         """
             Checks the validity of the parsed input.
         """
         pass
 
     @staticmethod
-    def string2array(string: str) -> np.ndarray[int]:
+    def __string2array(string: str) -> np.ndarray[int]:
         """
             Converts a space-separated string to a NumPy integer array.
 
@@ -70,7 +70,7 @@ class TransportationProblem:
         return np.array([int(x) for x in string.split()])
 
     @staticmethod
-    def allocate_at_min_cost(
+    def __allocate_at_min_cost(
             start_row: int,
             start_column: int,
             costs: np.ndarray[np.ndarray[int]],
@@ -107,14 +107,14 @@ class TransportationProblem:
         demand = self.demand.copy()
 
         while start_row != self.n and start_column != self.m:
-            self.allocate_at_min_cost(start_row, start_column, costs, supply, demand)
+            self.__allocate_at_min_cost(start_row, start_column, costs, supply, demand)
 
             start_row += 1 if supply[start_row] == 0 else 0
             start_column += 1 if demand[start_column] == 0 else 0
 
         return costs
 
-    def find_diff(self, costs: np.ndarray[np.ndarray[int]]):
+    def __find_diff(self, costs: np.ndarray[np.ndarray[int]]):
         """
             Finds the difference between the two smallest and the two smallest values in each row and column.
 
@@ -156,7 +156,7 @@ class TransportationProblem:
         demand = self.demand.copy()
 
         while np.max(supply) != 0 or np.max(demand) != 0:
-            row, col = self.find_diff(costs)
+            row, col = self.__find_diff(costs)
             row_max = np.max(row)
             row_col = np.max(col)
 
@@ -204,7 +204,7 @@ class TransportationProblem:
         return ans
 
     @staticmethod
-    def update_max_values(
+    def __update_max_values(
             n: int,
             m: int,
             u: np.ndarray[int],
@@ -232,7 +232,7 @@ class TransportationProblem:
             v[j] = max(costs[:, j]) if demand[j] > 0 else v[j]
 
     @staticmethod
-    def find_max_position(
+    def __find_max_position(
             u: np.ndarray[int],
             v: np.ndarray[int],
             costs: np.ndarray[np.ndarray[int]],
@@ -264,7 +264,7 @@ class TransportationProblem:
         return max_pos
 
     @staticmethod
-    def allocate_at_max_position(
+    def __allocate_at_max_position(
             ans: np.ndarray[np.ndarray[int]],
             max_pos: tuple[int, int],
             supply: np.ndarray[int],
@@ -301,9 +301,9 @@ class TransportationProblem:
         costs = self.costs.copy()
 
         while supply.sum() > 0 and demand.sum() > 0:
-            self.update_max_values(self.n, self.m, u, v, costs, supply, demand)
-            max_pos = self.find_max_position(u, v, costs, supply, demand)
-            self.allocate_at_max_position(ans, max_pos, supply, demand)
+            self.__update_max_values(self.n, self.m, u, v, costs, supply, demand)
+            max_pos = self.__find_max_position(u, v, costs, supply, demand)
+            self.__allocate_at_max_position(ans, max_pos, supply, demand)
 
         return ans
 
