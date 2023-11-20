@@ -25,7 +25,7 @@ The input file should follow this format:
 ```
 Replace `<supply array>`, `<demand array>`, and `<cost matrix row i>` with appropriate values.
 
-Example Input :
+### Example Input :
 ```
 160 140 170
 120 50 190 110
