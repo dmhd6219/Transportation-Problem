@@ -33,6 +33,19 @@ class TransportationProblem:
         self.__parse_input()
         self.__check_input()
 
+        print(f"Supply vector :")
+        pprint(self.supply)
+        print()
+
+        print(f"Demand vector :")
+        pprint(self.demand)
+        print()
+
+        print(f"Costs matrix :")
+        pprint(self.costs)
+        print()
+        print()
+
     def __parse_input(self) -> None:
         """
             Parses input from a file and initializes problem parameters.
@@ -54,7 +67,13 @@ class TransportationProblem:
         """
             Checks the validity of the parsed input.
         """
-        pass
+        if self.n != self.supply.size or self.m != self.demand.size:
+            print("The method is not applicable!")
+            exit(1)
+
+        if sum(self.supply) != sum(self.demand):
+            print("The problem is not balanced!")
+            exit(1)
 
     @staticmethod
     def __string2array(string: str) -> np.ndarray[int]:
@@ -316,12 +335,15 @@ def main() -> None:
 
     print("North-West Corner method returned :")
     pprint(solver.solve_with_north_west_corner())
+    print()
 
     print("Vogel's Approximation method returned :")
     pprint(solver.solve_with_vogel_approximation())
+    print()
 
     print("Russel's Approximation method returned :")
     pprint(solver.solve_with_russel_approximation())
+    print()
 
 
 if __name__ == "__main__":
